@@ -165,7 +165,6 @@ io.on('connection',socket =>{
 
 
     socket.on('LOAD', data => {
-        console.log("Load : " + data)
         let i = rooms.findIndex(v => v.roomname === data.inroomname)
         console.log(rooms[i])
         socket.emit('SETROOM',rooms[i])
