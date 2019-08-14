@@ -6,6 +6,7 @@ const mongoose = require('mongoose')
 const players = []
 const rooms = []
 let isAnswer = false;
+
 const Question = [
     {   id: 1,
         question: 'What is the capital city of Thailand ?',
@@ -134,7 +135,7 @@ io.on('connection',socket =>{
         console.log(checkDuplicate)
         if(checkDuplicate.length){
             console.log("Can not use this name")
-            socket.emit('CUROOMNAME',"error")
+            socket.emit('ErrorRoom')
         }
         else{
             let createRoom = ({
@@ -187,13 +188,11 @@ io.on('connection',socket =>{
             socket.emit('INROOM',player)
             socket.broadcast.emit('UPDATE',rooms[i])
             socket.to(rooms[i].roomname).emit('ADD_PLAYER',player)
-            console.log(rooms[i])
         }
         else if (rooms[i].playerinroom>5)
         {
             console.log("room is full")
             rooms[i].status = true
-            socket.emit('FULL')
         }
     })
 
@@ -232,8 +231,11 @@ io.on('connection',socket =>{
 
     socket.on('STARTGAME', data=>{
         console.log(data)
+        let i = rooms.findIndex(v => v.roomname === data)
+        rooms[i].status = true;
         socket.emit('START')
         socket.to(data).emit('START')
+        socket.broadcast.emit('UPDATE',rooms[i])
     })
 
     socket.on('LoadResult', data =>{
