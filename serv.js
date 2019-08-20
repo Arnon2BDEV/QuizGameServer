@@ -101,7 +101,6 @@ const Question = [
 io.on('connection',socket =>{
 
     console.log("Client is connect")
-
     socket.on('SETNAME',data =>{
 
         let _players = players
@@ -260,34 +259,37 @@ io.on('connection',socket =>{
     })
 
     socket.on('LoadQ', data =>{
+        console.log(data)
         let i = rooms.findIndex(v => v.roomname === data.inroomname)
         socket.join(data.inroomname)
         let _Question = Question.sort(() => Math.random() -0.5)
-        let roundTimer = 5000
-        let numberQ = 5
-        numberQ = numberQ - 1
-        console.log('_Quesion :', _Question[numberQ]);
-        io.to(data.inroomname).emit('Q1',_Question[numberQ])
+        let roundTimer = 10000
+        let numberQ = 1
+
+        _Question[numberQ].id = numberQ
+        io.to(data.inroomname).emit('Q1', _Question[numberQ])
         let setQuestionTimer = setInterval(() => {
-            numberQ = numberQ - 1
-            console.log('_Quesion :', _Question[numberQ]);
-            isAnswer = false
-            io.to(data.inroomname).emit('Q1', _Question[numberQ])
-            if (numberQ === 0) {
+            
+            if(numberQ < 5)
+            {
+                numberQ++
+                _Question[numberQ].id = numberQ
+                console.log('_Quesion :', _Question[numberQ]);
+                isAnswer = false
+                io.to(data.inroomname).emit('Q1', _Question[numberQ])
+            }
+            else
+            {
+                let newResult = rooms[i].result.sort((a, b) => b.score - a.score)
+                io.to(data.inroomname).emit('gameResult')
                 clearInterval(setQuestionTimer)
-                setTimeout(() => {
-                    isAnswer = false
-                    let newResult = rooms[i].result
-                    newResult.sort((a, b) => b.score - a.score)
-                    io.to(data.inroomname).emit('gameResult')
-               }, roundTimer);
-                console.log('end');
             }
         }, roundTimer);
-    })
+
+        console.log('end');
+        })
 
     socket.on('Answer', data => {
-        console.log("Answer Event")
         let i = rooms.findIndex(v => v.roomname === data.inroomname)
         if (!isAnswer) {
             if (rooms[i].result.length) {
